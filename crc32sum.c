@@ -1,5 +1,5 @@
 #include <stdio.h>
-//#include <stdlib.h>	/* exit() */
+#include <stdlib.h>	/* exit(), malloc(), free() */
 #include <zlib.h>	/* crc32 */
 #include <fcntl.h>
 #include <sys/mman.h>
@@ -20,6 +20,40 @@ void usage()
 	printf("Usage: %s [FILE]...\n"
 	       "Print CRC (32-bit) checksums."
 	       PROGRAM_NAME);
+}
+
+
+/**
+ * digest_filestream: compute crc32 cheksum for data stream in fd
+ */
+int digest_filestream(int fd)
+{
+	ssize_t ret;
+	size_t len = 4096; /* 4KB */
+
+	//char *buf = calloc(4096, sizeof(char));
+	char *buf = malloc(4096);
+
+	if (buf == NULL) {
+		//perror("calloc");
+		return 1;
+	}
+
+	uLong crc = crc32(0L, Z_NULL, 0);
+
+	while ((ret = read(fd, buf, len)) != 0) {
+		if (ret == -1) {
+			if (errno == EINTR)
+				continue;
+			//perror("read");
+			break;
+		}
+
+		crc = crc32(crc, buf, ret);
+	}
+
+	free(buf);
+	return crc;
 }
 
 
