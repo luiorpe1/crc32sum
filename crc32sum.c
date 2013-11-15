@@ -12,14 +12,36 @@
 #define PROGRAM_NAME "crc32sum"
 #define AUTHORS "Luis Ortega Perez de Villar"
 
-#define STREQ(a, b) = (strcmp((a), (b)) == 0)
+#define STREQ(a, b) (strcmp((a), (b)) == 0)
 
 
+/**
+ * usage: print usage message
+ */
 void usage()
 {
 	printf("Usage: %s [FILE]...\n"
-	       "Print CRC (32-bit) checksums.",
+	       "Print CRC (32-bit) checksums.\n"
+	       "With no FILE, or when FILE is -, read standard input.\n",
 	       PROGRAM_NAME);
+	printf("\n"
+	       "\t--help\tdisplay this help and exit\n");
+}
+
+
+/**
+ * version: print version message
+ */
+void version()
+{
+	printf("Copyright (C) 2013.\n"
+	       "License GPLv2+: GNU GPL version 2 or later"
+	       " <http://gnu.org/licenses/old-licenses/gpl-2.0.html>.\n"
+	       "This is free software: you are free to change and"
+	       " redistribute it.\n"
+	       "There is NO WARRANTY, to the extent permitted by law.\n"
+	       "\n"
+	       "Written by %s.\n", AUTHORS);
 }
 
 
@@ -102,21 +124,40 @@ int digest_file(const char *filename)
 }
 
 
+int sum_file(char *filename)
+{
+	uLong crc;
+	errno = 0;
+
+	if (STREQ(filename, "-"))
+		crc = digest_filestream(0);
+	else
+		crc = digest_file(filename);
+
+	if (errno)
+		printf("%s: %s\n", filename, strerror(errno));
+	else
+		printf("%8lX  %s\n", crc, filename);
+
+	return 0;
+
+}
+
 int main(int argc, char **argv)
 {
-	if (argc < 2) {
+	if (argc == 1) {
+		/* Sum data from stdin */
+		return sum_file("-");
+	} else if (argc == 2 && STREQ(argv[1], "--help")) {
 		usage();
-		return 1;
-	}
-
-	for (int i = 1; i < argc; i++) {
-		errno = 0;
-		uLong crc = digest_file(argv[i]);
-
-		if (errno)
-			printf("%s: %s\n", argv[i], strerror(errno));
-		else
-			printf("%8lX  %s\n", crc, argv[i]);
+		return 0;
+	} else if (argc == 2 && STREQ(argv[1], "--version")) {
+		version();
+		return 0;
+	} else {
+		/* Sum files */
+		for (int i = 1; i < argc; i++)
+			sum_file(argv[i]);
 	}
 
 	return 0;
