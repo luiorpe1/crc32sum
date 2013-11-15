@@ -58,9 +58,9 @@ int digest_filestream(int fd)
 
 
 /**
- * sum_file: calculate crc32 cheksum for file "filename"
+ * digest_file: compute the crc32 checksum for file "filename"
  */
-int sum_file(const char *filename)
+int digest_file(const char *filename)
 {
 	int fd;
 	struct stat sb;
@@ -134,7 +134,7 @@ int main(int argc, char **argv)
 
 	for (int i = 1; i < argc; i++) {
 		errno = 0;
-		uLong crc = sum_file(argv[i]);
+		uLong crc = digest_file(argv[i]);
 		
 		if (errno)
 			printf("%s: %s\n", argv[i], strerror(errno));
