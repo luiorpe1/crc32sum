@@ -12,7 +12,7 @@
 #define PROGRAM_NAME "crc32sum"
 #define AUTHORS "Luis Ortega Perez de Villar"
 
-#define STREQ a b = (strcmp((a), (b)) ? 0 : 1)
+#define STREQ(a, b) = (strcmp((a), (b)) == 0)
 
 
 void usage()
