@@ -107,8 +107,10 @@ int digest_file(const char *filename)
 	if (data == MAP_FAILED)
 		return 1;
 
-	/* TODO Find out why "madvise" doesn't compile */
-	/* madvise(data, sb.st_size, MADV_SEQUENTIAL); */
+	#ifdef _BSD_SOURCE
+	/* Advise the kernel about paging policy for this mapping */
+	madvise(data, sb.st_size, MADV_SEQUENTIAL);
+	#endif
 
 	/* Compute checksum */
 	crc = crc32(0L, (Bytef *) data, sb.st_size);
