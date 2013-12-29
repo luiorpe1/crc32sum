@@ -7,13 +7,21 @@
 #include <ctype.h>	/* S_ISREG */
 #include <string.h>
 #include <errno.h>
-#include <unistd.h>	/* getopt */
+#include <getopt.h>	/* getopt */
 
 
 #define PROGRAM_NAME "crc32sum"
 #define AUTHORS "Luis Ortega Perez de Villar"
 
 #define STREQ(a, b) (strcmp((a), (b)) == 0)
+
+
+static const struct option long_options[] = 
+{
+	{"help", no_argument, NULL, -2},
+	{"version", no_argument, NULL, -3},
+	{}
+};
 
 
 /**
@@ -155,16 +163,16 @@ int main(int argc, char **argv)
 		/* Sum data from stdin */
 		return	sum_file("-");
 
-	while ((c = getopt(argc, argv, "hV")) != -1) {
+	while ((c = getopt_long(argc, argv, "", long_options, NULL)) != -1) {
 		switch (c) {
-		case 'h':
+		case -2:
 			usage();
 			return 0;
-		case 'V':
+		case -3:
 			version();
 			return 0;
 		case '?':
-			fprintf(stderr, "Unknown option '-%c'.\n", optopt);
+			/* Automatically prints message */
 			return 1;
 		default:
 			abort();
