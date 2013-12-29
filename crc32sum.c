@@ -7,6 +7,7 @@
 #include <ctype.h>	/* S_ISREG */
 #include <string.h>
 #include <errno.h>
+#include <unistd.h>	/* getopt */
 
 
 #define PROGRAM_NAME "crc32sum"
@@ -147,20 +148,32 @@ int sum_file(char *filename)
 
 int main(int argc, char **argv)
 {
-	if (argc == 1) {
+	extern int optind, optopt;
+	int c;
+
+	if (argc == 1)
 		/* Sum data from stdin */
-		return sum_file("-");
-	} else if (argc == 2 && STREQ(argv[1], "--help")) {
-		usage();
-		return 0;
-	} else if (argc == 2 && STREQ(argv[1], "--version")) {
-		version();
-		return 0;
-	} else {
-		/* Sum files */
-		for (int i = 1; i < argc; i++)
-			sum_file(argv[i]);
+		return	sum_file("-");
+
+	while ((c = getopt(argc, argv, "hV")) != -1) {
+		switch (c) {
+		case 'h':
+			usage();
+			return 0;
+		case 'V':
+			version();
+			return 0;
+		case '?':
+			fprintf(stderr, "Unknown option '-%c'.\n", optopt);
+			return 1;
+		default:
+			abort();
+		}
 	}
+
+	/* Sum files */
+	for (int i = optind; i < argc; i++)
+		sum_file(argv[i]);
 
 	return 0;
 }
