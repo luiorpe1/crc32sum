@@ -6,7 +6,7 @@ Compute CRC32 message digest.
 
 License and disclaimer
 ----------------------
-Copyright (C) 2013 Luis Ortega Pérez de Villar <luiorpe1@upv.es>
+Copyright (C) 2013 - 2014 Luis Ortega Pérez de Villar <luiorpe1@upv.es>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
