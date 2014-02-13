@@ -147,9 +147,9 @@ int sum_file(char *filename)
 		crc = digest_file(filename);
 
 	if (errno)
-		printf("%s: %s\n", filename, strerror(errno));
+		fprintf(stderr, "%s: %s\n", filename, strerror(errno));
 	else
-		printf("%8lX  %s\n", crc, filename);
+		fprintf(stdout, "%8lX  %s\n", crc, filename);
 
 	return 0;
 
