@@ -9,7 +9,9 @@
 #include <errno.h>
 #include <getopt.h>	/* getopt */
 #include <unistd.h>	/* getpagesize() */
+#include <limits.h>	/* LINE_MAX */
 
+#include "crc32sum.h"
 
 #define PROGRAM_NAME "crc32sum"
 #define AUTHORS "Luis Ortega Perez de Villar"
@@ -19,6 +21,7 @@
 
 static const struct option long_options[] = 
 {
+	{"check", required_argument, NULL, 'c'},
 	{"help", no_argument, NULL, -2},
 	{"version", no_argument, NULL, -3},
 	{}
@@ -156,17 +159,90 @@ int sum_file(char *filename)
 
 }
 
+int digest_check(char *checkfile)
+{
+	char *buf;
+	size_t lmaxsize = LINE_MAX;
+	FILE *fp;
+	int ret = 0;
+	ssize_t n;
+	uLong crc;
+	unsigned nfailed = 0;
+
+	buf = malloc(LINE_MAX);
+
+	if (!buf)
+		return 1;
+
+	fp = fopen(checkfile, "r");
+	if (!fp) {
+		ret = 1;
+		goto check_out;
+	}
+
+	while ((n = getline(&buf, &lmaxsize, fp)) > 0) {
+		if (n == 1 || buf[0] == '#')
+			continue;
+
+		if (buf[n-1] == '\n')
+			buf[n-1] = '\0';
+
+		char *chkcrc;
+		char *filename;
+		char strcrc[9] = {0};
+
+		chkcrc = strtok(buf, " ");
+		filename = strtok(NULL, " ");
+
+		errno = 0;
+		crc = digest_file(filename);
+
+		if (errno) {
+			++nfailed;
+			ret = 1;
+			fprintf(stderr, "%s: %s\n", filename, strerror(errno));
+			continue;
+		}
+
+		sprintf(strcrc, "%8lX", crc);
+		if (STREQ(chkcrc, strcrc))
+			fprintf(stdout, "%s: OK\n", filename);
+		else {
+			++nfailed;
+			fprintf(stderr, "%s: FAILED\n", filename);
+		}
+
+		pr_debug("read: %s\ncomputed: %s\n", chkcrc, strcrc);
+	}
+
+	if (nfailed)
+		fprintf(stderr, "%s: WARNING: "
+			"%u computed checksum did NOT match\n",
+			PROGRAM_NAME, nfailed);
+
+	if (fclose(fp) == EOF)
+		ret = 1;
+
+check_out:
+	free(buf);
+	return ret;
+}
+
 int main(int argc, char **argv)
 {
 	extern int optind, optopt;
+	extern char *optarg;
 	int c;
 
 	if (argc == 1)
 		/* Sum data from stdin */
 		return	sum_file("-");
 
-	while ((c = getopt_long(argc, argv, "", long_options, NULL)) != -1) {
+	while ((c = getopt_long(argc, argv, "c:", long_options, NULL)) != -1) {
 		switch (c) {
+		case 'c':
+			digest_check(optarg);
+			return 0;
 		case -2:
 			usage();
 			return 0;
