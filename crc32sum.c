@@ -58,7 +58,7 @@ void version()
 /**
  * digest_filestream: compute crc32 cheksum for data stream in fd
  */
-int digest_filestream(int fd)
+uLong digest_filestream(int fd)
 {
 	ssize_t ret;
 	size_t len = getpagesize();
@@ -88,13 +88,15 @@ int digest_filestream(int fd)
 
 /**
  * digest_file: compute the crc32 checksum for file "filename"
+ * pre: set errno to 0
+ * post: if errno != 0 discard result
  */
-int digest_file(const char *filename)
+uLong digest_file(const char *filename)
 {
 	int fd;
 	struct stat sb;
 	char *data;
-	uLong crc;
+	uLong crc = 0;
 
 	/* Open file */
 	/* To open files >2GB in 32bit systems look at "man 2 open"
@@ -105,17 +107,17 @@ int digest_file(const char *filename)
 
 	/* Get file information and perform checks */
 	if (fstat(fd, &sb) == -1)
-		return 1;
+		goto df_out;
 
 	if (!S_ISREG(sb.st_mode)) {
 		errno = EINVAL;
-		return 1;
+		goto df_out;
 	}
 
 	/* Map file into memory */
 	data = mmap(0, sb.st_size, PROT_READ, MAP_SHARED, fd, 0);
 	if (data == MAP_FAILED)
-		return 1;
+		goto df_out;
 
 	#ifdef _BSD_SOURCE
 	/* Advise the kernel about paging policy for this mapping */
@@ -125,12 +127,11 @@ int digest_file(const char *filename)
 	/* Compute checksum */
 	crc = crc32(0L, (Bytef *) data, sb.st_size);
 
-	/* Unmap and close file */
-	if (munmap(data, sb.st_size) == -1)
-		return 1;
+	/* Unmap and close file, ignore ret values */
+	munmap(data, sb.st_size);
 
-	if (close(fd) == -1)
-		return 1;
+df_out:
+	close(fd);
 
 	return crc;
 }
