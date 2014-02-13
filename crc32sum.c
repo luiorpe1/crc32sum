@@ -8,6 +8,7 @@
 #include <string.h>
 #include <errno.h>
 #include <getopt.h>	/* getopt */
+#include <unistd.h>	/* getpagesize() */
 
 
 #define PROGRAM_NAME "crc32sum"
@@ -60,10 +61,10 @@ void version()
 int digest_filestream(int fd)
 {
 	ssize_t ret;
-	size_t len = 4096; /* 4KB */
+	size_t len = getpagesize();
 
-	/* char *buf = calloc(4096, sizeof(char)); */
-	char *buf = malloc(4096);
+	/* char *buf = calloc(len, sizeof(char)); */
+	char *buf = malloc(len);
 
 	if (buf == NULL)
 		return 1;
