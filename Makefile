@@ -1,9 +1,22 @@
+ARCH = $(shell uname -m)
+
 CC = gcc
-CFLAGS = -std=c99 -Wall -Werror -O2 -lz -D_FILE_OFFSET_BITS=64 -D_BSD_SOURCE -D_GNU_SOURCE
+CFLAGS += -std=c99 -Wall -Werror -D_BSD_SOURCE -D_GNU_SOURCE
+LDFLAGS = -lz
 
-crc32sum: crc32sum.c
-	$(CC) $(CFLAGS) -o $@ $<
+DESTDIR	 =
 
-.PHONY: clean
+ifneq ("$(ARCH)", "x86_64")
+	CFLAGS += -D_FILE_OFFSET_BITS=64
+endif
+
+crc32sum: crc32sum.o
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $<
+
+.PHONY: install clean
+
+install:
+	install -m755 crc32sum "${DESTDIR}"/usr/bin
+
 clean:
-	rm crc32sum
+	rm crc32sum crc32sum.o
