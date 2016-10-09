@@ -1,7 +1,7 @@
 ARCH = $(shell uname -m)
 
 CC = gcc
-CFLAGS += -std=c99 -Wall -Werror -D_BSD_SOURCE -D_GNU_SOURCE
+CFLAGS += -std=c99 -Wall -Werror -D_DEFAULT_SOURCE -D_GNU_SOURCE
 LDFLAGS = -lz
 
 DESTDIR	 =
