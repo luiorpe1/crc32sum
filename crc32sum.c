@@ -35,10 +35,11 @@ void usage()
 {
 	printf("Usage: %s [FILE]...\n"
 	       "Print CRC (32-bit) checksums.\n"
+	       "\n"
 	       "With no FILE, or when FILE is -, read standard input.\n",
 	       PROGRAM_NAME);
 	printf("\n"
-	       "\t--help\tdisplay this help and exit\n");
+	       "      --help\t display this help and exit\n");
 }
 
 
