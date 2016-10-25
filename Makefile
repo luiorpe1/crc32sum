@@ -1,7 +1,10 @@
 ARCH = $(shell uname -m)
 
+# GCC Warning Options Reference:
+# https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html
+
 CC = gcc
-CFLAGS += -std=c99 -Wall -Werror -D_DEFAULT_SOURCE -D_GNU_SOURCE
+CFLAGS += -std=c99 -Wall -Wextra -pedantic -Werror -D_DEFAULT_SOURCE -D_GNU_SOURCE
 LDFLAGS = -lz
 
 DESTDIR	 =

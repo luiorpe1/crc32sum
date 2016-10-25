@@ -17,7 +17,7 @@ static const struct option long_options[] =
 	{"check", required_argument, NULL, 'c'},
 	{"help", no_argument, NULL, -2},
 	{"version", no_argument, NULL, -3},
-	{}
+	{0}
 };
 
 
