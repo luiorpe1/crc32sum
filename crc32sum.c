@@ -12,12 +12,6 @@
 
 #include "crc32sum.h"
 
-#define PROGRAM_NAME "crc32sum"
-#define AUTHORS "Luis Ortega Perez de Villar"
-
-#define STREQ(a, b) (strcmp((a), (b)) == 0)
-
-
 static const struct option long_options[] = 
 {
 	{"check", required_argument, NULL, 'c'},
