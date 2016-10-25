@@ -2,7 +2,6 @@
 #include <stdlib.h>	/* exit(), malloc(), free() */
 #include <zlib.h>	/* crc32 */
 #include <fcntl.h>
-#include <sys/mman.h>
 #include <sys/stat.h>
 #include <ctype.h>	/* S_ISREG */
 #include <string.h>
@@ -62,18 +61,37 @@ void version()
 /**
  * digest_filestream: compute crc32 cheksum for data stream in fd
  */
-uLong digest_filestream(int fd)
+uLong digest_bytestream(int fd)
 {
+	struct stat sb;
+	uLong crc = 0;
+	char *buf = NULL;
 	ssize_t ret;
 	size_t len = getpagesize();
 
-	/* char *buf = calloc(len, sizeof(char)); */
-	char *buf = malloc(len);
+	if (fd == STDIN_FILENO)
+		goto db_digest;
 
+	/* Get file information and perform checks */
+	if (fstat(fd, &sb) == -1)
+		goto db_out;
+
+	if (S_ISDIR(sb.st_mode)) {
+		errno = EISDIR;
+		goto db_out;
+	}
+
+	if (!S_ISREG(sb.st_mode)) {
+		errno = EINVAL;
+		goto db_out;
+	}
+
+db_digest:
+	buf = calloc(len, sizeof(char));
 	if (buf == NULL)
-		return 1;
+		goto db_out;
 
-	uLong crc = crc32(0L, Z_NULL, 0);
+	crc = crc32(0L, Z_NULL, 0);
 
 	while ((ret = read(fd, buf, len)) != 0) {
 		if (ret == -1) {
@@ -86,60 +104,24 @@ uLong digest_filestream(int fd)
 	}
 
 	free(buf);
+db_out:
 	return crc;
 }
 
-
-/**
- * digest_file: compute the crc32 checksum for file "filename"
- * pre: set errno to 0
- * post: if errno != 0 discard result
- */
 uLong digest_file(const char *filename)
 {
 	int fd;
-	struct stat sb;
-	char *data;
-	uLong crc = 0;
+	uLong crc;
 
-	/* Open file */
-	/* To open files >2GB in 32bit systems look at "man 2 open"
-	 * and search for O_LARGEFILE */
 	fd = open(filename, O_RDONLY);
 	if (fd == -1)
 		return 1;
 
-	/* Get file information and perform checks */
-	if (fstat(fd, &sb) == -1)
-		goto df_out;
+	crc = digest_bytestream(fd);
 
-	if (!S_ISREG(sb.st_mode)) {
-		errno = EINVAL;
-		goto df_out;
-	}
-
-	/* Map file into memory */
-	data = mmap(0, sb.st_size, PROT_READ, MAP_SHARED, fd, 0);
-	if (data == MAP_FAILED)
-		goto df_out;
-
-	#ifdef _BSD_SOURCE
-	/* Advise the kernel about paging policy for this mapping */
-	madvise(data, sb.st_size, MADV_SEQUENTIAL);
-	#endif
-
-	/* Compute checksum */
-	crc = crc32(0L, (Bytef *) data, sb.st_size);
-
-	/* Unmap and close file, ignore ret values */
-	munmap(data, sb.st_size);
-
-df_out:
 	close(fd);
-
 	return crc;
 }
-
 
 int sum_file(char *filename)
 {
@@ -147,12 +129,16 @@ int sum_file(char *filename)
 	errno = 0;
 
 	if (STREQ(filename, "-"))
-		crc = digest_filestream(0);
+		crc = digest_bytestream(STDIN_FILENO);
 	else
 		crc = digest_file(filename);
 
 	if (errno)
-		fprintf(stderr, "%s: %s\n", filename, strerror(errno));
+		if (errno == EISDIR)
+			fprintf(stderr, "%s: %s: Is a directory\n",
+				PROGRAM_NAME, filename);
+		else
+			fprintf(stderr, "%s: %s\n", filename, strerror(errno));
 	else
 		fprintf(stdout, "%8lX  %s\n", crc, filename);
 
@@ -237,7 +223,7 @@ int main(int argc, char **argv)
 
 	if (argc == 1)
 		/* Sum data from stdin */
-		return	sum_file("-");
+		return sum_file("-");
 
 	while ((c = getopt_long(argc, argv, "c:", long_options, NULL)) != -1) {
 		switch (c) {
