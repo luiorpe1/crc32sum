@@ -201,8 +201,8 @@ int digest_check(char *checkfile)
 
 	if (nfailed)
 		fprintf(stderr, "%s: WARNING: "
-			"%u computed checksum did NOT match\n",
-			PROGRAM_NAME, nfailed);
+			"%u computed checksum%s did NOT match\n",
+			PROGRAM_NAME, nfailed, nfailed > 1 ? "s" : "");
 
 	if (fclose(fp) == EOF)
 		ret = 1;
