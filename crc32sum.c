@@ -134,7 +134,7 @@ int sum_file(char *filename)
 		else
 			fprintf(stderr, "%s: %s\n", filename, strerror(errno));
 	else
-		fprintf(stdout, "%8lX  %s\n", crc, filename);
+		fprintf(stdout, "%08lX  %s\n", crc, filename);
 
 	return 0;
 
@@ -185,7 +185,7 @@ int digest_check(char *checkfile)
 			continue;
 		}
 
-		sprintf(strcrc, "%8lX", crc);
+		sprintf(strcrc, "%08lX", crc);
 		if (STREQ(chkcrc, strcrc))
 			fprintf(stdout, "%s: OK\n", filename);
 		else {
