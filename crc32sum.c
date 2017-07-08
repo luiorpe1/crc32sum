@@ -222,8 +222,7 @@ int main(int argc, char **argv)
 	while ((c = getopt_long(argc, argv, "c:", long_options, NULL)) != -1) {
 		switch (c) {
 		case 'c':
-			digest_check(optarg);
-			return 0;
+			return digest_check(optarg);
 		case -2:
 			usage();
 			return 0;
