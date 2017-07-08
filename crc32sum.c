@@ -12,14 +12,16 @@
 
 #include "crc32sum.h"
 
+static int color = 0;
+
 static const struct option long_options[] = 
 {
 	{"check", required_argument, NULL, 'c'},
+	{"color", no_argument, &color, 1},
 	{"help", no_argument, NULL, -2},
 	{"version", no_argument, NULL, -3},
 	{0}
 };
-
 
 /**
  * usage: print usage message
@@ -50,7 +52,6 @@ void version()
 	       "\n"
 	       "Written by %s.\n", AUTHORS);
 }
-
 
 /**
  * digest_filestream: compute crc32 cheksum for data stream in fd
@@ -187,10 +188,12 @@ int digest_check(char *checkfile)
 
 		sprintf(strcrc, "%08lX", crc);
 		if (STREQ(chkcrc, strcrc))
-			fprintf(stdout, "%s: OK\n", filename);
+			fprintf(stdout, "%s: %s\n", filename, color ?
+				"\x1B[32m\x1B[1mOK\x1B[0m" : "OK");
 		else {
 			++nfailed;
-			fprintf(stderr, "%s: FAILED\n", filename);
+			fprintf(stderr, "%s: %s\n", filename, color ?
+				"\x1B[31m\x1B[1mFAILED\x1B[0m" : "FAILED");
 		}
 
 		pr_debug("read: %s\ncomputed: %s\n", chkcrc, strcrc);
@@ -221,6 +224,8 @@ int main(int argc, char **argv)
 
 	while ((c = getopt_long(argc, argv, "c:", long_options, NULL)) != -1) {
 		switch (c) {
+		case 0:
+			continue;
 		case 'c':
 			return digest_check(optarg);
 		case -2:
