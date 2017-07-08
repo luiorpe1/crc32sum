@@ -54,7 +54,7 @@ void version()
 }
 
 /**
- * digest_filestream: compute crc32 cheksum for data stream in fd
+ * digest_bytestream: compute crc32 cheksum for data stream in fd
  */
 uLong digest_bytestream(int fd)
 {
@@ -103,6 +103,9 @@ db_out:
 	return crc;
 }
 
+/**
+ * digest_file: compute crc32 cheksum for file in filename
+ */
 uLong digest_file(const char *filename)
 {
 	int fd;
@@ -118,6 +121,9 @@ uLong digest_file(const char *filename)
 	return crc;
 }
 
+/**
+ * sum_file: calculate and print crc32 cheksum
+ */
 int sum_file(char *filename)
 {
 	uLong crc;
@@ -141,6 +147,10 @@ int sum_file(char *filename)
 
 }
 
+/**
+ * digest_check: read checksum file. Compare read checksum against
+ * 		 computed checksum to verify file integrity.
+ */
 int digest_check(char *checkfile)
 {
 	char *buf;
@@ -212,6 +222,9 @@ check_out:
 	return ret;
 }
 
+/**
+ * main
+ */
 int main(int argc, char **argv)
 {
 	extern int optind, optopt;
