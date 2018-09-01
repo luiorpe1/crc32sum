@@ -53,6 +53,21 @@ void version()
 	       "Written by %s.\n", AUTHORS);
 }
 
+char * strtrim(char *str)
+{
+	char *strend = str + strlen(str) - 1;
+
+	while (isspace(*str))
+		str++;
+
+	while (isspace(*strend)) {
+		*strend = '\0';
+		strend--;
+	}
+
+	return str;
+}
+
 /**
  * digest_bytestream: compute crc32 cheksum for data stream in fd
  */
@@ -110,7 +125,7 @@ uLong digest_file(const char *filename)
 {
 	int fd;
 	uLong crc;
-
+printf("File: %s\n", filename);
 	fd = open(filename, O_RDONLY);
 	if (fd == -1)
 		return 1;
@@ -184,7 +199,8 @@ int digest_check(char *checkfile)
 		char strcrc[9] = {0};
 
 		chkcrc = strtok(buf, " ");
-		filename = strtok(NULL, " ");
+		filename = strtok(NULL, "");
+		filename = strtrim(filename);
 
 		errno = 0;
 		crc = digest_file(filename);
