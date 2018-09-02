@@ -2,6 +2,8 @@
 #define AUTHORS "Luis Ortega Perez de Villar"
 
 #define STREQ(a, b) (strcmp((a), (b)) == 0)
+#define max(x, y) ((x > y) ? x : y)
+#define min(x, y) ((x - y) ? x : y)
 
 #if defined(DEBUG)
 #define pr_debug(fmt, ...) \

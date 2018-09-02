@@ -53,14 +53,14 @@ void version()
 	       "Written by %s.\n", AUTHORS);
 }
 
-char * strtrim(char *str)
+char * strntrim(char *str, size_t len)
 {
-	char *strend = str + strlen(str) - 1;
+	char *strend = str + len;
 
-	while (isspace(*str))
+	while ((str < strend) && isspace(*str))
 		str++;
 
-	while (isspace(*strend)) {
+	while ((strend > str) && (isspace(*strend))) {
 		*strend = '\0';
 		strend--;
 	}
@@ -125,7 +125,7 @@ uLong digest_file(const char *filename)
 {
 	int fd;
 	uLong crc;
-printf("File: %s\n", filename);
+
 	fd = open(filename, O_RDONLY);
 	if (fd == -1)
 		return 1;
@@ -200,7 +200,7 @@ int digest_check(char *checkfile)
 
 		chkcrc = strtok(buf, " ");
 		filename = strtok(NULL, "");
-		filename = strtrim(filename);
+		filename = strntrim(filename, min(strlen(filename), LINE_MAX - strlen(chkcrc)));
 
 		errno = 0;
 		crc = digest_file(filename);
